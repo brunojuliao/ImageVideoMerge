@@ -1,9 +1,10 @@
-﻿using System;
+﻿using ImageVideoMerge.Exceptions;
+using System;
 using System.IO;
 
 namespace ImageVideoMerge {
   public class ImageVideoMerger {
-    private string ffmpegPath;
+    private readonly string ffmpegPath;
 
     public ImageVideoMerger(string ffmpegPath) {
 
@@ -19,27 +20,25 @@ namespace ImageVideoMerge {
       if (imageDetailsList == null || imageDetailsList.Length == 0)
         throw new ArgumentException("Invalid imageDetails! It must contains at least one item.");
 
-      var args = $"-i \"{videoDetails.Path}\" ";
+      var args = new System.Text.StringBuilder($"-i \"{videoDetails.Path}\" ");
       foreach (var imageDetails in imageDetailsList)
-        args += $"-i \"{imageDetails.Path}\" ";
+        args.Append($"-i \"{imageDetails.Path}\" ");
 
-      args += "-filter_complex \"";
+      args.Append("-filter_complex \"");
 
       var cont = 0;
-      var curName = string.Empty;
       foreach (var imageDetails in imageDetailsList) {
-        curName = new string((char)(97 + cont++), 1);
-        args += $"[{cont}:v] scale={imageDetails.Width}:{imageDetails.Height} [r{cont}:v];";
+        args.Append($"[{++cont}:v] scale={imageDetails.Width}:{imageDetails.Height} [r{cont}:v];");
       }
 
       cont = 0;
-      curName = string.Empty;
+      var curName = string.Empty;
       foreach (var imageDetails in imageDetailsList) {
         var prevName = cont++ == 0 ? "0:v" : new string((char)(95 + cont), 1);
         curName = new string((char)(96 + cont), 1);
-        args += $"[{prevName}][r{cont}:v] overlay = {imageDetails.X} / 2:({imageDetails.Y}) / 2:enable = 'between(t,{imageDetails.StartSecond},{imageDetails.EndSecond})' [{curName}];";
+        args.Append($"[{prevName}][r{cont}:v] overlay = {imageDetails.X} / 2:({imageDetails.Y}) / 2:enable = 'between(t,{imageDetails.StartSecond},{imageDetails.EndSecond})' [{curName}];");
       }
-      args = args.Substring(0, args.Length - $" [{curName}];".Length); //Removing " [letter];". Otherwise, the ffmpeg will fail.
+      args = new System.Text.StringBuilder(args.ToString().Substring(0, args.Length - $" [{curName}];".Length)); //Removing " [letter];". Otherwise, the ffmpeg will fail.
 
       var tempOutput = Path.GetTempFileName();
       File.Delete(tempOutput);
@@ -48,12 +47,12 @@ namespace ImageVideoMerge {
       if (File.Exists(tempOutput))
         File.Delete(tempOutput);
 
-      args += $"\" -pix_fmt yuv420p -c:a copy \"{tempOutput}\"";
+      args.Append($"\" -pix_fmt yuv420p -c:a copy \"{tempOutput}\"");
 
-      Helper.Cmd(this.ffmpegPath, args);
+      Helper.Cmd(this.ffmpegPath, args.ToString());
 
       if (!File.Exists(tempOutput))
-        throw new ApplicationException("The expected temp file was not created. Try to run with command returning data to check what's being sent to command.");
+        throw new FileNotExistsException(tempOutput, "The expected temp file was not created. Try to run with command returning data to check what's being sent to command.");
 
       var result = File.ReadAllBytes(tempOutput);
 

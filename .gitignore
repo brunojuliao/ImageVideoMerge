@@ -8,6 +8,8 @@
 .vs
 TestResults
 
+.sonarqube/
+
 # Build results
 [Dd]ebug/
 [Rr]elease/

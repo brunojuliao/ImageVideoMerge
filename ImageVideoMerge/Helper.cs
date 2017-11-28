@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ImageVideoMerge.Exceptions;
+using System;
 using System.Diagnostics;
 
 namespace ImageVideoMerge
@@ -40,7 +41,7 @@ namespace ImageVideoMerge
         }
         catch (Exception ex)
         {
-          throw new Exception($"Unexpected error: {ex.Message}", ex);
+          throw new UnexpectedErrorException($"Unexpected error: {ex.Message}", ex);
         }
       }
   }

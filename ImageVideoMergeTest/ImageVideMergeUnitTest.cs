@@ -42,7 +42,7 @@ namespace ImageVideoMergeTest {
       );
 
       Assert.IsTrue(bytes != null && bytes.Length > 0);
-      /*
+      
       var temp = Path.GetTempFileName();
       File.Delete(temp);
       temp = Path.ChangeExtension(temp, ".mp4");
@@ -51,7 +51,7 @@ namespace ImageVideoMergeTest {
         File.Delete(temp);
 
       File.WriteAllBytes(temp, bytes);
-      */
+      
     }
   }
 }
